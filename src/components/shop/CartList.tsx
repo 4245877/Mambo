@@ -13,6 +13,7 @@ export function CartList() {
   useEffect(() => {
     const sync = () => setItems(getCart());
     sync();
+
     window.addEventListener("mambo-cart-updated", sync);
     window.addEventListener("storage", sync);
 
@@ -44,7 +45,7 @@ export function CartList() {
     <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
       <div className="space-y-4">
         {items.map((item) => (
-          <div key={item.variantId} className="card p-4">
+          <div key={`${item.productId}:${item.variantId}`} className="card p-4">
             <div className="flex gap-4">
               <div className="h-24 w-20 shrink-0 overflow-hidden rounded-xl bg-gray-100">
                 <img src={item.image} alt={item.name} className="h-full w-full object-cover" />
@@ -60,9 +61,7 @@ export function CartList() {
                       {item.color} / {item.size}
                     </p>
                   </div>
-                  <div className="text-right font-medium">
-                    {formatUAH(item.price * item.qty)}
-                  </div>
+                  <div className="text-right font-medium">{formatUAH(item.price * item.qty)}</div>
                 </div>
 
                 <div className="mt-auto flex flex-wrap items-center gap-2">

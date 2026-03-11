@@ -59,13 +59,33 @@ export function CheckoutForm() {
     setLoading(true);
 
     try {
-      // Здесь позже будет POST /api/orders
-      await new Promise((r) => setTimeout(r, 700));
+      const response = await fetch("/api/orders", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          fullName: form.fullName,
+          phone: form.phone,
+          email: form.email,
+          city: form.city,
+          deliveryMethod: form.deliveryMethod,
+          paymentMethod: form.paymentMethod,
+          comment: form.comment,
+          items,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok || !result.ok) {
+        throw new Error(result.message || "Не вдалося оформити замовлення.");
+      }
 
       clearCart();
-      router.push("/checkout/success");
-    } catch {
-      setError("Не вдалося оформити замовлення. Спробуй ще раз.");
+      router.push(`/checkout/success?orderNumber=${encodeURIComponent(result.orderNumber)}`);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Не вдалося оформити замовлення. Спробуй ще раз.");
     } finally {
       setLoading(false);
     }
@@ -188,7 +208,10 @@ export function CheckoutForm() {
 
         <div className="mt-4 space-y-3">
           {items.map((item) => (
-            <div key={item.variantId} className="flex items-start justify-between gap-3 text-sm">
+            <div
+              key={`${item.productId}:${item.variantId}`}
+              className="flex items-start justify-between gap-3 text-sm"
+            >
               <div>
                 <div className="font-medium">{item.name}</div>
                 <div className="text-gray-600">
