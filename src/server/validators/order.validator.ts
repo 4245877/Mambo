@@ -32,32 +32,52 @@ function isNonEmptyString(value: unknown): value is string {
   return typeof value === "string" && value.trim().length > 0;
 }
 
+function isNumber(value: unknown): value is number {
+  return typeof value === "number" && Number.isFinite(value);
+}
+
+function isPositiveInt(value: unknown): value is number {
+  return typeof value === "number" && Number.isInteger(value) && value > 0;
+}
+
 function normalizeCartItem(raw: unknown): CartItem {
   assert(raw && typeof raw === "object", "Некоректний товар у кошику.");
 
   const item = raw as Record<string, unknown>;
 
-  assert(isNonEmptyString(item.productId), "У товару відсутній productId.");
-  assert(isNonEmptyString(item.variantId), "У товару відсутній variantId.");
-  assert(isNonEmptyString(item.slug), "У товару відсутній slug.");
-  assert(isNonEmptyString(item.name), "У товару відсутня назва.");
-  assert(isNonEmptyString(item.image), "У товару відсутнє зображення.");
-  assert(isNonEmptyString(item.color), "У товару відсутній колір.");
-  assert(isNonEmptyString(item.size), "У товару відсутній розмір.");
-  assert(typeof item.price === "number" && item.price >= 0, "Некоректна ціна товару.");
-  assert(Number.isInteger(item.qty) && item.qty > 0, "Некоректна кількість товару.");
+  const productId = item.productId;
+  const variantId = item.variantId;
+  const slug = item.slug;
+  const name = item.name;
+  const image = item.image;
+  const color = item.color;
+  const size = item.size;
+  const price = item.price;
+  const qty = item.qty;
+  const maxQty = item.maxQty;
+
+  assert(isNonEmptyString(productId), "У товару відсутній productId.");
+  assert(isNonEmptyString(variantId), "У товару відсутній variantId.");
+  assert(isNonEmptyString(slug), "У товару відсутній slug.");
+  assert(isNonEmptyString(name), "У товару відсутня назва.");
+  assert(isNonEmptyString(image), "У товару відсутнє зображення.");
+  assert(isNonEmptyString(color), "У товару відсутній колір.");
+  assert(isNonEmptyString(size), "У товару відсутній розмір.");
+  assert(isNumber(price) && price >= 0, "Некоректна ціна товару.");
+  assert(isPositiveInt(qty), "Некоректна кількість товару.");
+  assert(maxQty === undefined || isPositiveInt(maxQty), "Некоректний maxQty.");
 
   return {
-    productId: item.productId.trim(),
-    variantId: item.variantId.trim(),
-    slug: item.slug.trim(),
-    name: item.name.trim(),
-    image: item.image.trim(),
-    color: item.color.trim(),
-    size: item.size.trim(),
-    price: item.price,
-    qty: item.qty,
-    maxQty: typeof item.maxQty === "number" ? item.maxQty : undefined,
+    productId: productId.trim(),
+    variantId: variantId.trim(),
+    slug: slug.trim(),
+    name: name.trim(),
+    image: image.trim(),
+    color: color.trim(),
+    size: size.trim(),
+    price,
+    qty,
+    maxQty,
   };
 }
 
@@ -66,29 +86,44 @@ export function validateCreateOrderDto(body: unknown): CreateOrderDto {
 
   const data = body as Record<string, unknown>;
 
-  assert(isNonEmptyString(data.fullName), "Вкажи ПІБ.");
-  assert(isNonEmptyString(data.phone), "Вкажи телефон.");
-  assert(isNonEmptyString(data.city), "Вкажи місто.");
+  const fullName = data.fullName;
+  const phone = data.phone;
+  const email = data.email;
+  const city = data.city;
+  const deliveryMethod = data.deliveryMethod;
+  const paymentMethod = data.paymentMethod;
+  const comment = data.comment;
+  const itemsRaw = data.items;
 
-  assert(isNonEmptyString(data.deliveryMethod), "Вкажи спосіб доставки.");
-  assert(DELIVERY_METHODS.has(data.deliveryMethod as DeliveryMethod), "Некоректний спосіб доставки.");
+  assert(isNonEmptyString(fullName), "Вкажи ПІБ.");
+  assert(isNonEmptyString(phone), "Вкажи телефон.");
+  assert(isNonEmptyString(city), "Вкажи місто.");
 
-  assert(isNonEmptyString(data.paymentMethod), "Вкажи спосіб оплати.");
-  assert(PAYMENT_METHODS.has(data.paymentMethod as PaymentMethod), "Некоректний спосіб оплати.");
+  assert(isNonEmptyString(deliveryMethod), "Вкажи спосіб доставки.");
+  assert(
+    DELIVERY_METHODS.has(deliveryMethod as DeliveryMethod),
+    "Некоректний спосіб доставки."
+  );
 
-  assert(Array.isArray(data.items), "Товари замовлення відсутні.");
-  assert(data.items.length > 0, "Кошик порожній.");
+  assert(isNonEmptyString(paymentMethod), "Вкажи спосіб оплати.");
+  assert(
+    PAYMENT_METHODS.has(paymentMethod as PaymentMethod),
+    "Некоректний спосіб оплати."
+  );
 
-  const items = data.items.map(normalizeCartItem);
+  assert(Array.isArray(itemsRaw), "Товари замовлення відсутні.");
+  assert(itemsRaw.length > 0, "Кошик порожній.");
+
+  const items = itemsRaw.map(normalizeCartItem);
 
   return {
-    fullName: data.fullName.trim(),
-    phone: data.phone.trim(),
-    email: isNonEmptyString(data.email) ? data.email.trim() : undefined,
-    city: data.city.trim(),
-    deliveryMethod: data.deliveryMethod as DeliveryMethod,
-    paymentMethod: data.paymentMethod as PaymentMethod,
-    comment: isNonEmptyString(data.comment) ? data.comment.trim() : undefined,
+    fullName: fullName.trim(),
+    phone: phone.trim(),
+    email: isNonEmptyString(email) ? email.trim() : undefined,
+    city: city.trim(),
+    deliveryMethod: deliveryMethod as DeliveryMethod,
+    paymentMethod: paymentMethod as PaymentMethod,
+    comment: isNonEmptyString(comment) ? comment.trim() : undefined,
     items,
   };
 }
@@ -97,11 +132,12 @@ export function validateUpdateOrderStatusDto(body: unknown): UpdateOrderStatusDt
   assert(body && typeof body === "object", "Порожнє тіло запиту.");
 
   const data = body as Record<string, unknown>;
+  const status = data.status;
 
-  assert(isNonEmptyString(data.status), "Статус не переданий.");
-  assert(ORDER_STATUSES.has(data.status as OrderStatus), "Некоректний статус.");
+  assert(isNonEmptyString(status), "Статус не переданий.");
+  assert(ORDER_STATUSES.has(status as OrderStatus), "Некоректний статус.");
 
   return {
-    status: data.status as OrderStatus,
+    status: status as OrderStatus,
   };
 }
