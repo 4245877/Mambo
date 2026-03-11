@@ -68,7 +68,7 @@ export function CartList() {
                   <label className="text-sm text-gray-600">К-сть:</label>
                   <select
                     value={item.qty}
-                    onChange={(e) => updateCartQty(item.variantId, Number(e.target.value))}
+                    onChange={(e) => updateCartQty(item.productId, item.variantId, Number(e.target.value))}
                     className="rounded-lg border border-gray-300 px-2 py-1 text-sm"
                   >
                     {Array.from({ length: item.maxQty ?? 10 }, (_, i) => i + 1).map((n) => (
@@ -81,7 +81,7 @@ export function CartList() {
                   <Button
                     variant="ghost"
                     className="text-red-600 hover:bg-red-50"
-                    onClick={() => removeFromCart(item.variantId)}
+                    onClick={() => removeFromCart(item.productId, item.variantId)}
                   >
                     Видалити
                   </Button>

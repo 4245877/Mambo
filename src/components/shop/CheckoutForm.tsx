@@ -9,13 +9,16 @@ import { Select } from "@/components/ui/Select";
 import { cartSubtotal, clearCart, getCart } from "@/lib/cart";
 import { formatUAH } from "@/lib/money";
 
+type DeliveryMethod = "nova-poshta" | "ukrposhta" | "pickup";
+type PaymentMethod = "cod" | "card";
+
 type FormState = {
   fullName: string;
   phone: string;
   email: string;
   city: string;
-  deliveryMethod: string;
-  paymentMethod: string;
+  deliveryMethod: DeliveryMethod;
+  paymentMethod: PaymentMethod;
   comment: string;
 };
 
@@ -42,7 +45,7 @@ export function CheckoutForm() {
   const delivery = items.length ? 99 : 0;
   const total = subtotal + delivery;
 
-  async function onSubmit(e: React.FormEvent) {
+  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError("");
 
@@ -83,9 +86,15 @@ export function CheckoutForm() {
       }
 
       clearCart();
-      router.push(`/checkout/success?orderNumber=${encodeURIComponent(result.orderNumber)}`);
+      router.push(
+        `/checkout/success?orderNumber=${encodeURIComponent(result.orderNumber)}`
+      );
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Не вдалося оформити замовлення. Спробуй ще раз.");
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Не вдалося оформити замовлення. Спробуй ще раз."
+      );
     } finally {
       setLoading(false);
     }
@@ -98,7 +107,10 @@ export function CheckoutForm() {
         <p className="mt-2 text-sm text-gray-600">
           Спочатку додай товари, потім оформиш замовлення.
         </p>
-        <a href="/catalog" className="btn-base mt-4 bg-black text-white hover:bg-gray-800">
+        <a
+          href="/catalog"
+          className="btn-base mt-4 bg-black text-white hover:bg-gray-800"
+        >
           До каталогу
         </a>
       </div>
@@ -115,7 +127,9 @@ export function CheckoutForm() {
               <label className="mb-1 block text-sm font-medium">ПІБ *</label>
               <Input
                 value={form.fullName}
-                onChange={(e) => setForm((s) => ({ ...s, fullName: e.target.value }))}
+                onChange={(e) =>
+                  setForm((s) => ({ ...s, fullName: e.target.value }))
+                }
                 placeholder="Ім’я та прізвище"
               />
             </div>
@@ -124,7 +138,9 @@ export function CheckoutForm() {
               <label className="mb-1 block text-sm font-medium">Телефон *</label>
               <Input
                 value={form.phone}
-                onChange={(e) => setForm((s) => ({ ...s, phone: e.target.value }))}
+                onChange={(e) =>
+                  setForm((s) => ({ ...s, phone: e.target.value }))
+                }
                 placeholder="+380..."
               />
             </div>
@@ -134,7 +150,9 @@ export function CheckoutForm() {
               <Input
                 type="email"
                 value={form.email}
-                onChange={(e) => setForm((s) => ({ ...s, email: e.target.value }))}
+                onChange={(e) =>
+                  setForm((s) => ({ ...s, email: e.target.value }))
+                }
                 placeholder="email@example.com"
               />
             </div>
@@ -148,16 +166,25 @@ export function CheckoutForm() {
               <label className="mb-1 block text-sm font-medium">Місто *</label>
               <Input
                 value={form.city}
-                onChange={(e) => setForm((s) => ({ ...s, city: e.target.value }))}
+                onChange={(e) =>
+                  setForm((s) => ({ ...s, city: e.target.value }))
+                }
                 placeholder="Київ"
               />
             </div>
 
             <div>
-              <label className="mb-1 block text-sm font-medium">Спосіб доставки</label>
+              <label className="mb-1 block text-sm font-medium">
+                Спосіб доставки
+              </label>
               <Select
                 value={form.deliveryMethod}
-                onChange={(e) => setForm((s) => ({ ...s, deliveryMethod: e.target.value }))}
+                onChange={(e) =>
+                  setForm((s) => ({
+                    ...s,
+                    deliveryMethod: e.target.value as DeliveryMethod,
+                  }))
+                }
               >
                 <option value="nova-poshta">Нова пошта</option>
                 <option value="ukrposhta">Укрпошта</option>
@@ -170,10 +197,17 @@ export function CheckoutForm() {
         <section className="card p-4">
           <h3 className="text-lg font-semibold">Оплата</h3>
           <div className="mt-4">
-            <label className="mb-1 block text-sm font-medium">Спосіб оплати</label>
+            <label className="mb-1 block text-sm font-medium">
+              Спосіб оплати
+            </label>
             <Select
               value={form.paymentMethod}
-              onChange={(e) => setForm((s) => ({ ...s, paymentMethod: e.target.value }))}
+              onChange={(e) =>
+                setForm((s) => ({
+                  ...s,
+                  paymentMethod: e.target.value as PaymentMethod,
+                }))
+              }
             >
               <option value="cod">Післяплата</option>
               <option value="card">Оплата карткою (згодом)</option>
@@ -184,7 +218,9 @@ export function CheckoutForm() {
             <label className="mb-1 block text-sm font-medium">Коментар</label>
             <textarea
               value={form.comment}
-              onChange={(e) => setForm((s) => ({ ...s, comment: e.target.value }))}
+              onChange={(e) =>
+                setForm((s) => ({ ...s, comment: e.target.value }))
+              }
               rows={4}
               className="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm outline-none focus:border-gray-500"
               placeholder="Додаткові побажання до замовлення"
@@ -192,7 +228,8 @@ export function CheckoutForm() {
           </div>
 
           <p className="mt-3 text-xs text-gray-500">
-            Тут пізніше підключимо захист від спаму (Turnstile) і реальний API замовлень.
+            Тут пізніше підключимо захист від спаму (Turnstile) і реальний API
+            замовлень.
           </p>
         </section>
 
@@ -218,7 +255,9 @@ export function CheckoutForm() {
                   {item.color} / {item.size} × {item.qty}
                 </div>
               </div>
-              <div className="whitespace-nowrap">{formatUAH(item.price * item.qty)}</div>
+              <div className="whitespace-nowrap">
+                {formatUAH(item.price * item.qty)}
+              </div>
             </div>
           ))}
         </div>

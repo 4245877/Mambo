@@ -8,6 +8,10 @@ function emitCartUpdated() {
   }
 }
 
+function isSameCartItem(a: Pick<CartItem, "productId" | "variantId">, b: Pick<CartItem, "productId" | "variantId">) {
+  return a.productId === b.productId && a.variantId === b.variantId;
+}
+
 export function getCart(): CartItem[] {
   if (typeof window === "undefined") return [];
 
@@ -30,7 +34,7 @@ function saveCart(items: CartItem[]) {
 
 export function addToCart(item: CartItem) {
   const items = getCart();
-  const index = items.findIndex((x) => x.variantId === item.variantId);
+  const index = items.findIndex((x) => isSameCartItem(x, item));
 
   if (index >= 0) {
     const currentQty = items[index].qty ?? 1;
@@ -49,14 +53,14 @@ export function addToCart(item: CartItem) {
   saveCart(items);
 }
 
-export function removeFromCart(variantId: string) {
-  const items = getCart().filter((item) => item.variantId !== variantId);
+export function removeFromCart(productId: string, variantId: string) {
+  const items = getCart().filter((item) => !isSameCartItem(item, { productId, variantId }));
   saveCart(items);
 }
 
-export function updateCartQty(variantId: string, qty: number) {
+export function updateCartQty(productId: string, variantId: string, qty: number) {
   const items = getCart().map((item) => {
-    if (item.variantId !== variantId) return item;
+    if (!isSameCartItem(item, { productId, variantId })) return item;
 
     const maxQty = item.maxQty ?? 999;
     return {
@@ -74,4 +78,8 @@ export function clearCart() {
 
 export function cartSubtotal(items: CartItem[]) {
   return items.reduce((sum, item) => sum + item.price * item.qty, 0);
+}
+
+export function cartCount(items: CartItem[]) {
+  return items.reduce((sum, item) => sum + item.qty, 0);
 }

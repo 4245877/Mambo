@@ -1,5 +1,5 @@
 import type { CartItem } from "@/types/cart";
-import type { OrderStatus, DeliveryMethod, PaymentMethod } from "@/types/order";
+import type { DeliveryMethod, OrderStatus, PaymentMethod } from "@/types/order";
 
 export type CreateOrderDto = {
   fullName: string;

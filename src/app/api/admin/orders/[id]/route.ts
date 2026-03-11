@@ -3,14 +3,15 @@ import { getOrderById, updateOrderStatus } from "@/server/services/order.service
 import { validateUpdateOrderStatusDto } from "@/server/validators/order.validator";
 
 type Context = {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 };
 
-export async function GET(_req: Request, { params }: Context) {
+export async function GET(_req: Request, context: Context) {
   try {
-    const order = await getOrderById(params.id);
+    const { id } = await context.params;
+    const order = await getOrderById(id);
 
     if (!order) {
       return NextResponse.json(
@@ -34,11 +35,21 @@ export async function GET(_req: Request, { params }: Context) {
   }
 }
 
-export async function PATCH(req: Request, { params }: Context) {
+export async function PATCH(req: Request, context: Context) {
   try {
+    const { id } = await context.params;
     const body = await req.json();
     const dto = validateUpdateOrderStatusDto(body);
-    const order = await updateOrderStatus(params.id, dto.status);
+
+    const existing = await getOrderById(id);
+    if (!existing) {
+      return NextResponse.json(
+        { ok: false, message: "Замовлення не знайдено." },
+        { status: 404 }
+      );
+    }
+
+    const order = await updateOrderStatus(id, dto.status);
 
     return NextResponse.json({
       ok: true,
